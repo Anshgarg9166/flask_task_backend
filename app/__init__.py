@@ -13,5 +13,7 @@ def create_app():
 
     # Register Blueprints inside the function
     app.register_blueprint(task_bp, url_prefix="/api")
+    app.config['DEBUG'] = True
+
 
     return app
