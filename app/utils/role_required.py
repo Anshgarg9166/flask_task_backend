@@ -1,20 +1,19 @@
 from functools import wraps
-from flask import request, jsonify
-from app.models.user import User  # Assuming your User model has a role field
+from flask import jsonify
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+from app.models.user import User
 
-def role_required(allowed_roles):
-    def decorator(f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            # Dummy authentication from headers (replace with real JWT validation)
-            username = request.headers.get("X-User")
-            if not username:
-                return jsonify({"error": "Authentication required"}), 401
+def role_required(required_role):
+    def wrapper(fn):
+        @wraps(fn)
+        def decorator(*args, **kwargs):
+            verify_jwt_in_request()
+            user_id = get_jwt_identity()
+            user = User.query.get(user_id)
 
-            user = User.query.filter_by(username=username).first()
-            if not user or user.role not in allowed_roles:
-                return jsonify({"error": "Unauthorized"}), 403
+            if not user or user.role != required_role:
+                return jsonify({"error": "Access forbidden: Insufficient role"}), 403
 
-            return f(*args, **kwargs)
-        return wrapper
-    return decorator
+            return fn(*args, **kwargs)
+        return decorator
+    return wrapper

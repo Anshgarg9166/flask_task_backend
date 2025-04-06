@@ -1,9 +1,15 @@
 # app/__init__.py
 
 from flask import Flask
-from app.models import db
+# from app.models import db
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
+from app.routes.tasks import task_bp
+from app.routes.auth import auth_bp
+from app.models.logger import TaskLogger
+
+from app.extensions import db
+
 
 migrate = Migrate()
 jwt = JWTManager()
@@ -22,8 +28,7 @@ def create_app():
     from app.models.task import TaskManager
 
     # Register routes
-    from app.routes.tasks import task_bp
-    from app.routes.auth import auth_bp
+    
     app.register_blueprint(task_bp)
     app.register_blueprint(auth_bp)
 
