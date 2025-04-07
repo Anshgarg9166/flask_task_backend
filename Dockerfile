@@ -1,19 +1,20 @@
 # Dockerfile
-
 FROM python:3.11-slim
 
-# Set work directory
+# Set workdir
 WORKDIR /app
 
+# Copy dependencies first (for caching)
+COPY requirements.txt ./
+
 # Install dependencies
-COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project files
+# Copy entire project
 COPY . .
 
-# Environment variable to select the config
-ENV FLASK_ENV=production
-ENV FLASK_APP=app
+# Set environment variable
+ENV PYTHONUNBUFFERED=1
 
+# Run the app
 CMD ["flask", "run", "--host=0.0.0.0"]

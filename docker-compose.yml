@@ -1,17 +1,39 @@
-version: "3.9"
+# docker-compose.yml
+version: '3.9'
+
 services:
   web:
     build: .
+    container_name: flask_app
+    env_file:
+      - .env
+      - .env.${ENV}
     ports:
       - "5000:5000"
-    env_file:
-      - .env.${ENV}
     volumes:
       - .:/app
+    command: flask run --host=0.0.0.0
     depends_on:
       - redis
-    command: flask run --host=0.0.0.0
+      - db
+
   redis:
-    image: redis:7-alpine
+    image: redis:alpine
+    container_name: flask_redis
     ports:
       - "6379:6379"
+
+  db:
+    image: postgres:13
+    container_name: flask_postgres
+    environment:
+      POSTGRES_DB: task_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Ansh9166
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
