@@ -1,4 +1,3 @@
-# docker-compose.yml
 version: '3.9'
 
 services:
@@ -6,34 +5,53 @@ services:
     build: .
     container_name: flask_app
     env_file:
-      - .env
-      - .env.${ENV}
+      - .env.dev  # Change this per environment
     ports:
       - "5000:5000"
     volumes:
       - .:/app
     command: flask run --host=0.0.0.0
     depends_on:
-      - redis
       - db
-
-  redis:
-    image: redis:alpine
-    container_name: flask_redis
-    ports:
-      - "6379:6379"
+      - redis
 
   db:
-    image: postgres:13
-    container_name: flask_postgres
+    image: postgres:14
+    container_name: postgres_db
     environment:
-      POSTGRES_DB: task_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Ansh9166
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: task_db
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:6
+    container_name: redis_server
+    ports:
+      - "6379:6379"
+
+  celery_worker:
+    build: .
+    container_name: celery_worker
+    command: celery -A app.tasks.celery worker --loglevel=info
+    depends_on:
+      - web
+      - redis
+    env_file:
+      - .env.dev
+
+  celery_beat:
+    build: .
+    container_name: celery_beat
+    command: celery -A app.tasks.celery beat --loglevel=info
+    depends_on:
+      - web
+      - redis
+    env_file:
+      - .env.dev
 
 volumes:
   pgdata:
