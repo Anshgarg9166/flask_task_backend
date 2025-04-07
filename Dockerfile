@@ -18,3 +18,6 @@ ENV PYTHONUNBUFFERED=1
 
 # Run the app
 CMD ["flask", "run", "--host=0.0.0.0"]
+
+ENV PYTHONUNBUFFERED=1
+CMD ["flask", "run", "--host=0.0.0.0"]
