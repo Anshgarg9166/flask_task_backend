@@ -1,0 +1,22 @@
+# .dockerignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+.env
+.env.*
+venv/
+build/
+dist/
+*.egg-info
+celerybeat-schedule
+instance/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+*.sqlite3
+.DS_Store
+.idea/
+.vscode/
