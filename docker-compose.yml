@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env.${ENV}
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+    command: flask run --host=0.0.0.0
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
