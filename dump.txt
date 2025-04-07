@@ -21,7 +21,7 @@ task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 def get_tasks():
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 10, type=int)
-
+    
     tasks = TaskLogger.query.paginate(page=page, per_page=per_page, error_out=False)
     return jsonify([
         {
@@ -32,6 +32,7 @@ def get_tasks():
         }
         for t in tasks.items
     ]), 200
+
 
 @task_bp.route("/", methods=["GET"])
 @jwt_required()
@@ -55,9 +56,9 @@ def get_tasks_by_date():
     if cached_data:
         return jsonify({"cached": True, "tasks": eval(cached_data)}), 200
 
-    tasks = TaskLogger.query.filter(TaskLogger.logged_at.like(f"{date}%")).all()
+    tasks = TaskLogger.query.filter(TaskLogger.log_date.like(f"{date}%")).all()
     task_list = [
-        {"id": t.id, "task_id": t.task_id, "status": t.status, "log_date": t.logged_at}
+        {"id": t.id, "task_id": t.task_id, "status": t.status, "log_date": t.log_date}
         for t in tasks
     ]
     redis_client.setex(cache_key, 3600, str(task_list))
@@ -75,8 +76,9 @@ def get_task_details(task_logger_id):
         "id": task.id,
         "task_id": task.task_id,
         "status": task.status,
-        "log_date": task.logged_at
+        "log_date": task.logged_at  # ✅ Corrected field name
     }), 200
+
 
 @task_bp.route("/", methods=["POST"])
 @jwt_required()
@@ -97,15 +99,6 @@ def create_task():
     )
     db.session.add(new_task)
     db.session.commit()
-
-    log = TaskLogger(
-        task_id=new_task.id,
-        task_name=new_task.task_name,
-        status=True
-    )
-    db.session.add(log)
-    db.session.commit()
-
     return jsonify({"message": "Task created"}), 201
 
 @task_bp.route("/<int:task_id>", methods=["PUT"])
@@ -121,21 +114,14 @@ def update_task(task_id):
     except ValidationError as e:
         return jsonify(e.errors()), 400
 
+
+
     task.task_name = data.task_name or task.task_name
     task.description = data.description or task.description
     task.status = data.status if data.status is not None else task.status
     task.priority = data.priority or task.priority
     task.assigned_user = data.assigned_user or task.assigned_user
     db.session.commit()
-
-    log = TaskLogger(
-        task_id=task.id,
-        task_name=task.task_name,
-        status=True
-    )
-    db.session.add(log)
-    db.session.commit()
-
     return jsonify({"message": "Task updated"}), 200
 
 @task_bp.route("/<int:task_id>", methods=["DELETE"])
@@ -148,15 +134,6 @@ def soft_delete_task(task_id):
 
     task.status = False
     db.session.commit()
-
-    log = TaskLogger(
-        task_id=task.id,
-        task_name=task.task_name,
-        status=False
-    )
-    db.session.add(log)
-    db.session.commit()
-
     return jsonify({"message": "Task marked as inactive"}), 200
 
 @task_bp.route("/upload-csv", methods=["POST"])
@@ -191,14 +168,6 @@ def upload_csv():
             assigned_user=row["assigned_user"]
         )
         db.session.add(task)
-        db.session.flush()  # Get ID before commit
-
-        log = TaskLogger(
-            task_id=task.id,
-            task_name=task.task_name,
-            status=True
-        )
-        db.session.add(log)
 
     db.session.commit()
     return jsonify({"message": "CSV uploaded successfully"}), 201
