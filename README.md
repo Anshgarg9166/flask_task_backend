@@ -158,44 +158,104 @@ docker-compose up --build
 
 ---
 
-## 🧪 Sample API Usage
+## 📬 API Endpoints & Sample Requests
 
-### Register
+### 🔐 Auth
 
-```bash
+#### Register
+```
 POST /auth/register
+Content-Type: application/json
+
 {
-  "username": "ansh",
+  "username": "ansh123",
   "email": "ansh@example.com",
   "password": "strongpassword"
 }
 ```
 
-### Login
-
-```bash
+#### Login
+```
 POST /auth/login
+Content-Type: application/json
+
 {
   "email": "ansh@example.com",
   "password": "strongpassword"
 }
 ```
 
-### Create Task
+#### List Users (Admin only)
+```
+GET /auth/users
+Authorization: Bearer <JWT_TOKEN>
+```
 
-```bash
+---
+
+### 📋 Tasks
+
+#### Create Task
+```
 POST /tasks/
 Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
 
 {
-  "task_name": "checking again task logger",
-  "description": "lets see again",
-  "status": true,
-  "priority": "High",
-  "created_at": "2024-04-06T10:00:00",
-  "assigned_user": "Anshgarg"
+  "title": "New Task",
+  "description": "Description of task",
+  "due_date": "2025-04-10"
 }
+```
 
+#### Tasks Greeting
+```
+GET /tasks/
+```
+
+#### Update Task
+```
+PUT /tasks/<task_id>
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+
+{
+  "title": "Updated Task Title",
+  "description": "Updated description",
+  "due_date": "2025-04-15"
+}
+```
+
+#### Delete Task (Soft Delete)
+```
+DELETE /tasks/<task_id>
+Authorization: Bearer <JWT_TOKEN>
+```
+
+#### Get Task Details
+```
+GET /tasks/<task_logger_id>
+Authorization: Bearer <JWT_TOKEN>
+```
+
+#### List All Tasks
+```
+GET /tasks/list
+Authorization: Bearer <JWT_TOKEN>
+```
+
+#### Get Tasks by Date
+```
+GET /tasks/by-date?date=2025-04-10
+Authorization: Bearer <JWT_TOKEN>
+```
+
+#### Upload CSV
+```
+POST /tasks/upload-csv
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: multipart/form-data
+file: [Upload CSV file]
 ```
 
 ---
